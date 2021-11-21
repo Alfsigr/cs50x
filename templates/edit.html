@@ -1,0 +1,337 @@
+{% extends "layout.html" %}
+
+{% block title %}
+Edit Friend
+{% endblock %}
+
+{% block style %}
+<style>
+  label {
+    display:block
+  }
+
+  #intro {
+    font-size:xx-large;
+  }
+
+  p {
+    font-size:x-large;
+  }
+</style>
+{% endblock %}
+
+{% block main %}
+
+<div class="col-lg-12">
+  <div style="padding-top:2%" class="page-header">
+    <h1 id="tables" class="display-3">Edit Friend</h1>
+  </div>
+  <p>
+    Use the Update button to update fields, then Confirm Changes
+  </p>
+  <div id="table-container" class="bs-component">
+    <table id="change-table" class="table table-striped table-no-hover my-table">
+      <thead>
+        <tr>
+          <th scope="col">Name:</th>
+          <th scope="col">Birthday:</th>
+          <th scope="col" colspan="2">Interests:</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="table-active">
+          <td id="old-name">
+            {{ friend["name"] }}
+          </td>
+          <td id="old-birthday">
+            {{ friend["birthday"] }}
+          </td>
+          <td colspan="2">
+            <p style="display:inline-block" id="old-interests">
+              {{ friend["interests"] }}
+            </p>
+            <p style="display:inline-block" id="new-interests"></p>
+          </td>
+        </tr>
+        <tr class="table-active">
+          <td>
+            <label for="new-name">New Name:</label>
+            <input id="new-name" type="text" class="input-lg">
+            <button id="name-btn" type="button" class="btn btn-info">Update</button>
+          </td>
+          <td>
+            <label for="new-birthday">New Birthday:</label>
+            <input id="new-birthday" type="date" class="input-lg">
+            <button id="birthday-btn" type="button" class="btn btn-info">Update</button>
+          </td>
+          <td>
+            <label for="new-interest">Add:</label>
+            <input id="new-interest" type="text" class="input-lg">
+            <button id="interest-add-btn" type="button" class="btn btn-info">Update</button>
+          </td>
+          <td>
+            <label for="delete-interest">Remove:</label>
+            <select id="delete-interest" class="input-lg">
+              <option>None</option>
+              {% for interest, value in dict_int.items() %}
+              <option id={{ value }} value={{ value }}>{{ interest }}</option>
+              {% endfor %}
+              <!--
+              {% for interest in interests %}
+              <option value={{ interest }}>{{ interest }}</option>
+              {% endfor %}
+              -->
+            </select>
+            <button id="interest-delete-btn" type="button" class="btn btn-info">Update</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+<div class="bs-component" style="display: flex; justify-content: space-between;">
+  <form action ="/update_friend" method="post">
+    <input type="hidden" id="update-input" name="update">
+    <input type="hidden" id="friend-id" name="friend-id" value={{ friend["id"] }}>
+    <input type="hidden" id="name" name="name">
+    <input type="hidden" id="birthday" name="birthday">
+    <input type="hidden" id="removed-interests" name="removed-interests">
+    <input type="hidden" id="added-interests" name="added-interests">
+    <input type="hidden" id="updated-number" name="updated-number">
+    <button id="update-btn" type="submit" class="btn btn-success">Confirm Changes</button>
+    <a href="/" class="btn btn-success">Cancel</a>
+  </form>
+
+  <form action="/delete_friend" method="post">
+    <input type="hidden" value={{ friend["id"] }} name="delete-btn">
+    <button type="submit" class="btn btn-danger">Delete Friend</button>
+  </form>
+
+</div>
+
+<script>
+// parseDate function here as this is the only place we need to use pure front end js validation of birthday (to check if missing)
+  function parseDate(date)
+  {
+    // list of months
+    let months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+    // right side resolved first, they are strings, int-i-fy the resulting string and bam
+    let monthInt = parseInt((date[5] + date[6]), 10);
+    // get the month
+    let month = months[monthInt - 1];
+
+    // get day as int
+    let day_int = parseInt((date[8] + date[9]), 10);
+
+    let postfix = "";
+
+    if ([1, 21, 31].includes(day_int))
+    {
+      postfix = "st";
+    }
+    else if ([2, 22].includes(day_int))
+    {
+      postfix = "nd";
+    }
+    else if ([3, 23].includes(day_int))
+    {
+      postfix = "rd";
+    }
+    else
+    {
+      postfix = "th";
+    }
+
+    // get year
+    let year = date.substring(0, 4);
+
+    birthString = day_int.toString() + postfix + " " + month + " " + year;
+
+    return birthString;
+
+
+  }
+
+  // get original old interests list
+  let oldInterests = (document.getElementById("old-interests").innerHTML).trim();
+  // in list form for potential removing
+  let oldInterestsList = oldInterests.split(", ");
+
+  // variables for things the form will need
+  let name = "";
+  let birthday = "";
+  /////
+  //let interests = oldInterestsList;
+
+  // new way not as much processing? just keep list of added and removed interests, pass to form for backend sql manipulation
+  let added = [];
+  let removed = [];
+
+  // new interest list, and a version to display properly
+  let newInterestsList = [];
+  let htmlInterestsList = [];
+
+
+  // keep track of whether anything has been updated (better true/false?)
+  let updated = 0;
+
+  document.getElementById("name-btn").addEventListener("click", function() {
+    let nameInput = document.getElementById("new-name").value;
+    if (!nameInput)
+    {
+      alert("New Name is blank - cannot update");
+      return;
+    }
+    else
+    {
+      let oldName = document.getElementById("old-name");
+      oldName.innerHTML = nameInput;
+      oldName.style.color = 'purple';
+
+      name = nameInput;
+
+      updated++;
+
+      return;
+    }
+  });
+
+  document.getElementById("birthday-btn").addEventListener("click", function() {
+    let birthdayInput = document.getElementById("new-birthday").value;
+    if (!birthdayInput)
+    {
+      alert("Birthday is blank - cannot update");
+    }
+    else
+    {
+      // get old birthday element to change it's inner HTML etc
+      let oldBirthday = document.getElementById("old-birthday");
+
+      let newBirthday = parseDate(birthdayInput);
+
+      oldBirthday.innerHTML = newBirthday;
+      oldBirthday.style.color = 'purple';
+
+      birthday = birthdayInput;
+
+      updated++;
+
+      /////
+      // CHECK could be parsed date
+      /////
+    }
+  });
+
+  document.getElementById("interest-add-btn").addEventListener("click", function() {
+    // get new interest, check field has something in it
+    let interestInput = document.getElementById("new-interest").value;
+    if (!interestInput)
+    {
+      alert("Interest is blank - cannot update");
+    }
+    else
+    {
+      if (oldInterestsList.includes(interestInput))
+      {
+        alert("Interest is already on list - cannot update");
+      }
+      else if (newInterestsList.includes(interestInput))
+      {
+        alert("You have already added this interest. Click 'Confirm Changes' to update this record");
+      }
+      else
+      {
+        /////
+        console.log(document.getElementById("old-interests").innerHTML);
+
+        // if it's the first new interest after some old ones
+        if (newInterestsList.length == 0 && oldInterestsList.length !== 0)
+        {
+          // stick into new interests list
+          newInterestsList.push(interestInput);
+          // and construct display list
+          htmlInterestsList.push("+" + " " + interestInput);
+
+        }
+        else
+        {
+          // as above, goes into new interests naked either way
+          newInterestsList.push(interestInput);
+          // putting the spaces back in for displaying
+          htmlInterestsList.push(" " + interestInput);
+        }
+
+        // change html display to reflect new interest
+        document.getElementById("new-interests").innerHTML = htmlInterestsList;
+        document.getElementById("new-interests").style.color = "purple";
+
+        updated++;
+      }
+    }
+  });
+
+  document.getElementById("interest-delete-btn").addEventListener("click", function() {
+    let interest = document.getElementById("delete-interest").value;
+    if (interest == "None")
+    {
+      alert("No current interest selected - cannot update");
+      return;
+    }
+    else
+    {
+      // an interest does not like whitespace - it will need UNDERSCORES or 2+ words become one
+      // but now we put the whitespace back to remove it from the list - g replaces all occurences of value:
+      interestOriginal = interest.replace(/_/g, " ");
+      removed.push(interestOriginal);
+      // get the index of the specific interest
+      let index = oldInterestsList.indexOf(interestOriginal);
+      // and remove it
+      oldInterestsList.splice(index, 1);
+      // html-friendly list as before
+      oldInterestsHTML = [];
+      for (let i = 0; i < oldInterestsList.length; i++)
+      {
+        // provide spaces for html display
+        oldInterestsHTML.push(" " + oldInterestsList[i]);
+      }
+
+      // removing the element from the dropdown select
+      let removeMe = document.getElementById(interest);
+
+      // remove the element, selected index. Messed around with it a bit and this worked. Not sure why.
+      removeMe.remove(removeMe.index);
+
+      document.getElementById("old-interests").innerHTML = oldInterestsHTML;
+
+      updated++;
+
+      /////
+      console.log(interest);
+      console.log(index);
+      console.log(oldInterestsList);
+    }
+
+  });
+
+  document.getElementById("update-btn").addEventListener("click", function() {
+    document.getElementById("name").value = name;
+    document.getElementById("birthday").value = birthday;
+    //interests = oldInterestsList.concat(newInterestsList);
+    //document.getElementById("interests").value = interests.join(', ');
+    document.getElementById("added-interests").value = newInterestsList;
+    document.getElementById("removed-interests").value = removed;
+    document.getElementById("updated-number").value = updated;
+  });
+
+</script>
+{% endblock %}
+
+
+
+
+
+
+
+
+
+

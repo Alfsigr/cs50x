@@ -1,0 +1,36 @@
+mypink #F266DB
+myblue #0093D2
+myyellow #F2CD5E
+mypeach #F2B28D
+mycyan #cafef8
+
+***
+When rendering index.html, wrap gift explore buttons in hidden inputs with values equal to name passed in to index
+route to make table in first place -> Jinja
+***
+Probably won't work, use javascript to cycle through table and set hidden form input values equal to the name.
+
+DELETE FROM friends;
+DELETE FROM sqlite_sequence WHERE name = 'friends';
+
+<tr class="table-active">
+          <td>Queen Alfsigr **TEST**</td>
+          <td>16th January 1985</td>
+          <td><button type="button" class="btn btn-success">Explore</button></td>
+          <td>
+            <button id="Queen Alfsigr" type="button" class="btn btn-success">Show/Hide</button>
+            <div id="myDIV" style="display:none">
+              <p>Cool, Fabulous, Otherworldly, Amazing, Pure shit, Muppert, Dogs, Cats, Aardvarks, Stuff</p>
+            </div>
+          </td>
+          <td class="delete-column"><button type="button" class="btn btn-danger">Edit Info/Delete Friend</button></td>
+        </tr>
+
+//  document.getElementById("Queen Alfsigr").addEventListener("click", function() {
+//    var wordDiv = document.getElementById("myDIV");
+//    if (wordDiv.style.display === "none") {
+//      wordDiv.style.display = "block";
+//    } else {
+//      wordDiv.style.display = "none";
+//    }
+//  });

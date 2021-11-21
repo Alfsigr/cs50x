@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <link href="/static/bootstrap1.css" rel="stylesheet">
+    <link href="/static/gifts.css" rel="stylesheet">
+
+    <title>{% block title %}{% endblock %}</title>
+
+    {% block style %}{% endblock %}
+
+  </head>
+  <body>
+    <style>
+      #foot {
+        font-size: large;
+        margin:5%;
+      }
+    </style>
+    <div style="padding-left:0" class="my-navbar navbar navbar-expand-lg fixed-top" id="navbar">
+      <div style="padding-left:0' padding-right:0">
+        <a href="../" class="navbar-brand my-navbar">GiftWatch</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+      </div>
+      <div class="collapse navbar-collapse" id="navbarResponsive">
+        <ul style="margin-left:auto" class="navbar-nav">
+          {% if session.user_id %}
+            <li class="nav-item">
+              <a class="nav-link" href="/">{{ session.username }}</a>
+            </li>
+            <li style="border-left:3px solid; border-right:3px solid" class="nav-item">
+              <a class="nav-link" href="/change_password">Change Password</a>
+            </li>
+            <li>
+              <a class="nav-link" href="/logout">Log Out</a>
+            </li>
+          {% else %}
+            <li class="nav-item">
+              <a class="nav-link" href="/login">Log In</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="/register">Register</a>
+            </li>
+          {% endif %}
+
+        </ul>
+      </div>
+    </div>
+
+    <br>
+    <br>
+    <br>
+
+    {% if get_flashed_messages() %}
+      <header>
+        <div class="alert alert-primary border text-center" role="alert">
+          {{ get_flashed_messages() | join(" ") }}
+        </div>
+      </header>
+    {% endif %}
+
+    <main style="text-align:center; margin:0; padding: 1% 5% 0 5%">
+        {% block main %}{% endblock %}
+    </main>
+
+    <footer id="foot" class="text-center footer">
+      Free Bootstrap theme by <a href="https://bootswatch.com/sketchy/">Bootswatch</a>. Background picture provided free by Miguel Á. Padriñán for <a href="https://www.pexels.com/photo/defocused-image-of-lights-255379/">Pexels</a>.
+      {% block footer %}{% endblock %}
+    </footer>
+
+  </body>
+</html>

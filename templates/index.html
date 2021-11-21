@@ -1,0 +1,121 @@
+{% extends "layout.html" %}
+
+{% block title %}
+GiftWatch
+{% endblock %}
+
+{% block style %}
+<style>
+  p {
+    font-size:large;
+  }
+
+  #naemates {
+    font-size:x-large;
+  }
+</style>
+{% endblock %}
+
+{% block main %}
+<div class="col-lg-12">
+  <div style="padding-top:2%" class="page-header">
+    <h1 id="tables" class="display-3">My Folk</h1>
+  </div>
+
+  <div id="table-container" class="bs-component">
+    <!--inline css here to override sheets  -->
+    {% if rows %}
+    <table id="friend-table" class="table table-striped table-no-hover my-table">
+      <thead>
+        <tr>
+          <th scope="col">Name</th>
+          <th scope="col">Birthday</th>
+          <th scope="col">Gift History</th>
+          <th scope="col">Interests</th>
+        </tr>
+      </thead>
+      <tbody>
+
+        {% for row in rows %}
+        <tr class="table-active">
+          <td>{{ row["name"] }}</td>
+          <td>{{ row["birthday"] }}</td>
+          <td>
+            <form action="/gift_history" method="post">
+              <input type="hidden" name=gift-history value={{ row["id"] }}>
+              <button type="submit" class="btn btn-success">Explore/Edit</button>
+            </form>
+          </td>
+          <td>
+            <button id={{ row["show_id"] }} type="button" class="btn btn-success show_js">Show/Hide</button>
+            <div id={{ row["div_id"] }} class="div_js" style="display:none">
+              <p>{{ row["interests"] }}</p>
+            </div>
+          </td>
+          <td class="delete-column">
+            <form action ="/edit" method="post">
+              <input type="hidden" id="edit" name="edit" value={{ row["id"] }}>
+              <button type="submit" class="btn btn-danger">Edit/Delete Friend</button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div>
+      <p id="naemates">You have no friends in your list - press the Add Friend button to get started!</p>
+    </div>
+    {% endif %}
+  </div>
+</div>
+<div>
+  <form style="text-align:left" action="/add_friend">
+    <button type="submit" class="btn btn-success">Add Friend</button>
+  </form>
+</div>
+<script>
+
+// var for length of array so no recalculating
+// minus one as this includes the headings
+let friendLength = document.getElementById("friend-table").rows.length - 1;
+
+// for each friend e.g. each table row
+for (let i = 0; i < friendLength; i++)
+{
+  // build ids to look for which match the ids they already have
+  let buttonID = "show_" + String(i);
+  let wordsID = "interestdiv_" + String(i);
+
+  /* instead of most of this nonsense could probably have just done them by querySelectorAll-ing a css class and just
+  grab the ids from there. That would have been better than this shenanigans, which nonetheless works. */
+  // but only because of its contrived sequential nature, do not do again but leave it, it works.
+
+  // add click listener to show/hide the friend's interests
+  document.getElementById(buttonID).addEventListener("click", function() {
+    let wordDiv = document.getElementById(wordsID);
+    if (wordDiv.style.display === "none") {
+      wordDiv.style.display = "block";
+    } else {
+      wordDiv.style.display = "none";
+    }
+  });
+
+
+}
+
+</script>
+
+{% endblock %}
+
+
+
+
+
+
+
+
+
+
+
+

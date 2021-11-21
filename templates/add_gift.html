@@ -1,0 +1,110 @@
+{% extends "layout.html" %}
+
+{% block title %}
+Add Gift
+{% endblock %}
+
+{% block style %}
+<style>
+    p {
+        font-size:large;
+        margin:auto auto 1% auto;
+    }
+
+    .jumbotron {
+        padding-top:2%;
+    }
+
+    label {
+    display:block
+    }
+
+    input {
+        font-size:x-large;
+    }
+</style>
+{% endblock %}
+
+{% block main %}
+<br>
+<div class="row">
+    <div class="col-lg-12">
+        <div class="bs-component">
+            <div class="page-header">
+                <h1 class="display-3">Record New Gift for {{ name }}</h1>
+            </div>
+            <div class="jumbotron jumbotron-sml">
+                <form onsubmit="return validate(this);" action="/confirm_gift" method="post">
+                    <div class="form-group">
+                        <label for="gift">Gift</label>
+                        <div style="display: flex; justify-content: center;">
+                            <input id="gift" style="background-color:white; font-size:x-large; width:75%" autocomplete="off" autofocus class="form-control" name="gift" placeholder="Gift" type="text" spellcheck="false">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="date">Date</label>
+                        <input style="font-size:x-large" id="date" name="date" class="optional" placeholder="Date" type="date">
+                    </div>
+                    <div class="form-group">
+                        <label for="price">Price (GBP)</label>
+                        <input style="font-size:x-large" id="price" name="price" class="optional" placeholder="Price" type="number">
+                    </div>
+                    <div class="form-group">
+                        <label for="date">Comments</label>
+                        <div style="display: flex; justify-content: center">
+                            <textarea style="font-size:x-large; width:75%" rows="2" id="comments" class="form-control optional" name="comments" placeholder="Comments" type="text"></textarea>
+                        </div>
+                    </div>
+                    <input type="hidden" name="friend-id" value={{ friend_id }}>
+
+                    <button class="btn btn-success" type="submit">Add</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function validate(form) {
+    // form can use to pass itself in e.g. validate(this)
+
+    // array for any values not provided by user
+    let missing = [];
+
+    let gift = document.getElementById("gift").value;
+    let date = document.getElementById("date").value;
+    let price = document.getElementById("price").value;
+    let comments = document.getElementById("comments").value;
+
+    if (!gift)
+    {
+        // basic gift info is necessary for adding record
+        alert("No gift provided - cannot add");
+        return false;
+    }
+
+    // get all the optional but useful values
+    let items = document.querySelectorAll(".optional");
+
+    for (let i = 0; i < items.length; i++)
+    {
+        itemId = items[i].id;
+        itemValue = items[i].value;
+
+        // if no value provided, record as missing
+        if (!itemValue)
+        {
+            missing.push(itemId);
+        }
+    }
+
+    if (missing.length != 0)
+    {
+        var missingItems = missing.join(", ");
+        return confirm("Form is missing " + missingItems + ". Do you really want to submit?");
+    }
+
+    return true;
+}
+</script>
+{% endblock %}

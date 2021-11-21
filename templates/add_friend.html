@@ -1,0 +1,72 @@
+{% extends "layout.html" %}
+
+{% block title %}
+Add Friend
+{% endblock %}
+
+{% block style %}
+<style>
+    p {
+        font-size:large;
+        margin:auto auto 1% auto;
+    }
+
+    .jumbotron {
+        padding-top:2%;
+    }
+
+    label {
+    display:block
+    }
+
+    input {
+        font-size:x-large;
+    }
+</style>
+{% endblock %}
+
+{% block main %}
+<br>
+<div class="row">
+    <div class="col-lg-12">
+        <div class="bs-component">
+            <div class="page-header">
+                <h1 class="display-3">Add New Friend</h1>
+            </div>
+            <div class="jumbotron jumbotron-sml">
+                <form action="/add_friend" method="post">
+                    <div class="form-group">
+                        <label for="name">Name</label>
+                        <input id="name" style="background-color:white; font-size:x-large" autocomplete="off" autofocus class="form-control" name="name" placeholder="Name" type="text" spellcheck="false">
+                    </div>
+                    <div class="form-group">
+                        <label for="birthday">Birthday (optional)</label>
+                        <input style="font-size:x-large" id="birthday" name="birthday" placeholder="Birthday" type="date">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="interests">Add Some Interests (optional)</label>
+                        <div id="interests" class="container">
+                            <div class="row">
+                                <div class="col-sm">
+                                    <input id="one" name="interest1" class="form-control" type="text" placeholder="Dogs" style="font-size:x-large">
+                                </div>
+                                <div class="col-sm">
+                                    <input id="two" name="interest2" class="form-control" type="text" placeholder="Rick and Morty" style="font-size:x-large">
+                                </div>
+                                <div class="col-sm">
+                                    <input id="three" name="interest3" class="form-control" type="text" placeholder="Filmmaking" style="font-size:x-large">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <p>
+                        You will be able to add more interests and edit your friends' details later
+                    </p>
+                    <button class="btn btn-success" type="submit">Add</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

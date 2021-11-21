@@ -1,0 +1,25 @@
+{% extends "layout.html" %}
+
+{% block title %}
+Confirm
+{% endblock %}
+
+{% block main %}
+<div style="text-align:center" class="page-header">
+    <h1 class="display-3">!</h1>
+    <h1 class="display-3">{{ message }}</h1>
+    <div class="bs-component" style="display: flex; justify-content: space-evenly; margin-top:5%">
+        <form action="/confirm_delete" method="post">
+            <input type="hidden" id="confirm-btn" name="confirm-btn" value={{ friend_id }}>
+            <button type="submit" class="btn btn-danger btn-lg">Yes - delete from database</button>
+        </form>
+        <form action="/">
+            <button type="submit" class="btn btn-info btn-lg">No - return to homepage</button>
+        </form>
+    </div>
+</div>
+<script>
+    let test = document.getElementById("confirm-btn").value;
+    console.log(test);
+</script>
+{% endblock %}

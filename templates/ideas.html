@@ -1,0 +1,279 @@
+{% extends "layout.html" %}
+
+{% block title %}
+Ideas
+{% endblock %}
+
+{% block style %}
+<style>
+    .jumbotron {
+        font-size:x-large;
+    }
+
+    span {
+        color:indigo;
+    }
+
+    .options {
+        display: flex;
+        justify-content: space-around;
+        padding-top:5%;
+    }
+
+    .btn {
+        border: 2px solid #333;
+    }
+
+    #yes {
+        background-color: ForestGreen;
+    }
+
+    #new-idea {
+        background-color: RoyalBlue;
+    }
+
+    #new-interest {
+        background-color: RoyalBlue;
+    }
+
+    #middle-form {
+        margin-left:4%;
+        margin-right:4%;
+    }
+</style>
+{% endblock %}
+
+{% block main %}
+<script type="text/javascript" src="https://code.jquery.com/jquery-1.7.1.min.js"></script>
+
+<br>
+<div class="row">
+    <div class="col-lg-12">
+        <div class="bs-component">
+            <div class="page-header">
+                <h1 class="display-3">Inspire Me!</h1>
+            </div>
+            <div class="jumbotron jumbotron-sml">
+                <div id="writing">
+                    <div id="interestDiv">
+                        Your friend <span id="name">{{ friend_name }}</span> is interested in <span id="interest">{{ rand_interest }}</span>.
+                    </div>
+                    <div id="ideaDiv">
+                        Our gift machine suggested <span id="idea">{{ rand_idea }}</span> as a related idea. Does this sound OK?
+                    </div>
+                </div>
+                <div class="options">
+                    <form id="search" target="_blank" action ="https://www.ebay.com/sch/i.html?_from=R40&_trksid=p2334524.m570.l1312&_nkw={{ rand_idea }}+gift&_sacat=0&LH_TitleDesc=0&_sop=12&_ssn=&_odkw={{ rand_idea }}" method="post">
+                        <button type="submit" id="yes" class="btn btn-success btn-lg">Yes - search based on this idea!</button>
+
+                    </form>
+                    <button type="button" id="new-idea" class="btn btn-success btn-lg">No, search using a new associated idea</button>
+                    <button type="button" id="new-interest" class="btn btn-success btn-lg">No, search using a new interest and idea</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+<script>
+    // get the associations for a given word
+    function getAssocs(word)
+    {
+        const settings = {
+            // changed this, not async any more, not ideal
+            // only way i've made it work, probably there is a better way
+        	"async": false,
+        	"crossDomain": true,
+        	"url": "https://twinword-word-associations-v1.p.rapidapi.com/associations/?entry=" + word,
+        	"method": "GET",
+        	"headers": {
+        		"x-rapidapi-key": "04c1a8be93msh30596fd533a7913p148671jsn7bebee3f1eed",
+        		"x-rapidapi-host": "twinword-word-associations-v1.p.rapidapi.com"
+            }
+        };
+        var data = $.parseJSON($.ajax(settings).responseText);
+        // if this word/interest has associations
+        if ("associations_array" in data)
+        {
+            return data["associations_array"].slice(0, 15);
+        }
+        else
+        {
+            return 1;
+        }
+    }
+
+    // find an interest with associations - returns associations array
+    // with interest at array[0]
+    // recursion baby yeah
+    function getValidInterest(interestArray)
+    {
+
+        // if no interests left in array
+        if (interestArray.length ==0)
+        {
+            return 1;
+        }
+        let interest = interestArray[Math.floor(Math.random()*interestArray.length)];
+
+        let assocs = getAssocs(interest);
+        if (assocs != 1)
+        {
+            assocs.unshift(interest);
+
+            return assocs;
+        }
+        else
+        {
+            let index = interestArray.indexOf(interest);
+            interestArray.splice(index, 1);
+            return getValidInterest(interestArray);
+        }
+    }
+
+
+    // json-ified interest list (string)
+    let interests = '{{ interests | tojson }}';
+    // back to an array with you
+    interests = JSON.parse(interests);
+    // vars for interest and idea, initially set to values passed in on render
+    let interest = '{{ rand_interest }}';
+    let idea = '{{ rand_idea }}';
+    let ideas = [];
+    let ideaPressed = false;
+
+    document.getElementById("new-idea").addEventListener("click", function() {
+
+        if (ideaPressed == false)
+        {
+            // get the array of associations for the current interest
+            ideas = getAssocs(interest);
+        }
+
+        ideaPressed = true;
+
+        // get index of current idea for removal (don't do same idea twice)
+        let index = ideas.indexOf(idea);
+        ideas.splice(index, 1);
+
+        /////
+        console.log(ideas);
+
+        // if no ideas left
+        if (ideas.length == 0)
+        {
+            let ideaDiv = document.getElementById("ideaDiv");
+            ideaDiv.innerHTML = "We have run out of ideas for this interest! Search using a new interest or choose another friend.";
+            document.getElementById("yes").disabled = "true";
+            document.getElementById("new-idea").disabled = "true";
+            document.getElementById("new-interest").innerHTML = "Search using a new interest and idea";
+            return;
+        }
+
+        // get a new random idea
+        let newIdea = ideas[Math.floor(Math.random()*ideas.length)];
+        // update global idea variable with new idea
+        idea = newIdea;
+
+        // update html
+        document.getElementById("idea").innerHTML = idea;
+
+        // update search button
+        document.getElementById("search").action = "https://www.ebay.com/sch/i.html?_from=R40&_trksid=p2334524.m570.l1312&_nkw=" + idea + "+gift&_sacat=0&LH_TitleDesc=0&_sop=12&_ssn=&_odkw=" + idea;
+    });
+
+    document.getElementById("new-interest").addEventListener("click", function() {
+
+        // remove the current interest from the global array
+        let index = interests.indexOf(interest);
+        interests.splice(index, 1);
+
+        // get a new interest plus associations if any exist
+        let interestAndIdeas = getValidInterest(interests);
+
+        if (interestAndIdeas == 1)
+        {
+            // disable buttons to prevent tomfoolery
+            document.getElementById("yes").disabled = "true";
+            document.getElementById("new-idea").disabled = "true";
+            document.getElementById("new-interest").disabled = "true";
+
+            // no need to change html as reloading or redirecting next
+            if (window.confirm("No interests with associations left - reload interests and start again?"))
+            {
+                window.location.reload(true);
+            }
+            else
+            {
+                window.location.href = "/";
+            }
+        }
+        else
+        {
+            // resetting things if previously changed by switching ideas
+            document.getElementById("yes").removeAttribute('disabled');
+            document.getElementById("new-idea").removeAttribute('disabled');
+            document.getElementById("new-interest").innerHTML = "No, search using a new interest and idea";
+
+            // update the global variables
+            let newInterest = interestAndIdeas.shift(interestAndIdeas[0]); // interest had previously been unshifted on
+            interest = newInterest;
+
+            ideas = interestAndIdeas.slice(); // interestAndIdeas now just contains ideas
+
+            let newIdea = interestAndIdeas[Math.floor(Math.random()*interestAndIdeas.length)];
+            idea = newIdea;
+
+            // update html and search link
+            document.getElementById("idea").innerHTML = idea;
+            document.getElementById("interest").innerHTML = interest;
+            document.getElementById("search").action = "https://www.ebay.com/sch/i.html?_nkw=" + idea + "+gift"
+
+            /////
+            console.log(interests);
+            console.log(interest);
+            console.log(ideas);
+            console.log(idea);
+        }
+
+
+
+
+    });
+
+    /*
+    document.getElementById("no").addEventListener("click", function() {
+        const settings = {
+	        "async": true,
+	        "crossDomain": true,
+	        "url": "https://twinword-word-associations-v1.p.rapidapi.com/associations/?entry=sound",
+	        "method": "GET",
+	        "headers": {
+		    "x-rapidapi-key": "04c1a8be93msh30596fd533a7913p148671jsn7bebee3f1eed",
+		    "x-rapidapi-host": "twinword-word-associations-v1.p.rapidapi.com"
+	    }
+    };
+
+    $.ajax(settings).done(function (response) {
+	    console.log(response);
+	    console.log(response["associations_array"]);
+    });
+    });
+    */
+    // just testing the thing i thought didn't work and worked around for ages actually works fine fml it's fine
+    // apparently just use quotes ahahahahahahah who knew not me lol so funny. Very funny.
+    // this will actually be very useful but i still hate it and myself
+    // json ffs
+    // make it a string, pass to js then un-json or whateve. So easy. Grrrrrrrrr.
+    var someJavaScriptVar = '{{ testVar }}';
+    console.log(someJavaScriptVar);
+
+</script>
+{% endblock %}
+
+{% block footer %}
+<p>Word Associations API by <a href="https://rapidapi.com/user/twinword">Twinword</a> provided by <a href="https://rapidapi.com/marketplace">RapidAPI</a>.</p>
+{% endblock %}
